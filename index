@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JumpFall</title>
+</head>
+<body>
+  <h1>JumpFall Bytebeat</h1>
+  <textarea id="code" rows="4" cols="50">
+    t*(((t>>12)|(t>>8))&(63&(t>>4)))
+  </textarea>
+  <button onclick="startByteBeat()">Start</button>
+  <button onclick="stopByteBeat()">Stop</button>
+
+  <script>
+    let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
+    let t = 0;
+
+    function startByteBeat() {
+      let code = document.getElementById("code").value;
+      scriptNode.onaudioprocess = function(audioProcessingEvent) {
+        let outputBuffer = audioProcessingEvent.outputBuffer;
+        let outputData = outputBuffer.getChannelData(0);
+        for (let sample = 0; sample < outputBuffer.length; sample++) {
+          outputData[sample] = eval(code) / 128.0;
+          t++;
+        }
+      }
+      scriptNode.connect(audioCtx.destination);
+    }
+
+    function stopByteBeat() {
+      scriptNode.disconnect(audioCtx.destination);
+    }
+  </script>
+</body>
+</html>
